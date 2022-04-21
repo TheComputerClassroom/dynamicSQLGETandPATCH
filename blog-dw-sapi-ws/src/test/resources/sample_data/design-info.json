@@ -1,0 +1,26 @@
+{
+  "sampleData": {
+    "2bc3f925-753e-41e0-9e3c-1de0944ac9e7": {
+      "payload": "sample_data/name.xml"
+    },
+    "478f40fc-cca9-41a0-ac90-137b46d90ebd": {
+      "payload": "sample_data/defaultnulltype.dwl",
+      "attributes": "sample_data/java.dwl"
+    },
+    "53b350db-2e05-4e28-9738-8c714571b7dd": {
+      "payload": "sample_data/json.json"
+    },
+    "476aa507-d4fa-4eb2-976b-c7d9989e97a4": {
+      "payload": "sample_data/*.dwl"
+    },
+    "506a0111-4a97-48b3-b917-52a956776ea0": {
+      "attributes": "sample_data/java_1.dwl"
+    },
+    "9ceaeb6f-ff4e-491a-ae31-8615e46f6d24": {
+      "attributes": "sample_data/java_2.dwl"
+    },
+    "7e108b9a-7c17-4fd5-a98d-e9105dab0981": {
+      "attributes": "sample_data/java_3.dwl"
+    }
+  }
+}

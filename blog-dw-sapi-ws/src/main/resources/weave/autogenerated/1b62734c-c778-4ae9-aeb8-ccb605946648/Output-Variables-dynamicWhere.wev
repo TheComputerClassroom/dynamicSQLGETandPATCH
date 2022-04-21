@@ -1,0 +1,4 @@
+%dw 2.0
+
+type auto_1b62734c_c778_4ae9_aeb8_ccb605946648_Output_Variables_dynamicWhere = Any
+

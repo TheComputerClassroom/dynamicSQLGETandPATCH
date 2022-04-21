@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<flow name="validatePersonID" doc:id="f03d3d88-acee-42cf-9e37-e1fcec50ff0e" doc:description="Validates that a person with the given ID exists. ">
+		<try doc:name="Try" doc:id="49dbd8fa-52c5-4b18-91cf-4dd2f414be8b" >
+			<db:query-single doc:name="lookup person by ID. store result in vars.exists as boolean." doc:id="c4632b06-c3b9-4e30-9280-ed12b92881be" config-ref="Database_Config" target="exists" targetValue='#[import * from dw::Runtime --- if(isEmpty(payload)) fail("No person by that ID") else true]'>
+			<db:sql><![CDATA[SELECT ID FROM people where ID = :uriID]]></db:sql>
+			<db:input-parameters><![CDATA[#[{ uriID: vars.personID }]]]></db:input-parameters>
+		</db:query-single>
+			<error-handler >
+				<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="4e77971c-1985-4446-8c73-7c2bc4743540" type="ANY">
+					<set-payload value='#[output application/json --- error: "no person by that ID"]' doc:name="error: error.description" doc:id="7735ba3c-3267-4687-b7ff-58d6acb20c79" />
+					<set-variable value="#[404]" doc:name="httpStatus:404" doc:id="433ccef0-c3b6-489d-8390-7b3a3b2d1a45" variableName="httpStatus"/>
+				</on-error-propagate>
+			</error-handler>
+		</try>
+	</flow>
+	<flow name="postPerson" doc:id="48cb300b-5073-4673-a586-4d43db508355" >
+		<db:insert doc:name="Insert" doc:id="28ac41f6-c2ef-420a-8a7b-3e3107fb215b" config-ref="Database_Config">
+			<db:sql ><![CDATA[INSERT INTO people (firstName, lastName, address1 ) VALUES ( :fname, :lname, :addr )	]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{ fname: payload.firstNAME, lname: payload.lastName, addr: payload.address1}]]]></db:input-parameters>
+		</db:insert>
+		<logger level="INFO" message="post:\people:application\json:blog-dw-config" />
+	</flow>
+	<flow name="getPeople" doc:id="1b62734c-c778-4ae9-aeb8-ccb605946648">
+		<db:select doc:name="Select" doc:id="bb38a8b3-533b-43eb-b912-79db2683797a" config-ref="Database_Config">
+			<db:sql ><![CDATA[#[ 'select * from people $(vars.dynamicWhere.where)' ]]]></db:sql>
+			<db:input-parameters ><![CDATA[#[if (isEmpty(vars.dynamicWhere.params)) {} else vars.dynamicWhere.params]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="to Contract" doc:id="cb10b505-1a62-4425-9572-95d348b8fe66" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" message="get:\people:blog-dw-config" />
+	</flow>
+	<flow name="getPersonByID" doc:id="f27eaf3b-2254-439a-9da5-7f639190788c" >
+		<flow-ref doc:name="validatePersonID" doc:id="7724360b-3604-4c34-b293-297d30c3d715" name="validatePersonID"/>
+		<db:query-single doc:name="retrieve one person by ID" doc:id="4d022a83-bd65-4621-bf23-0c31606b3789" config-ref="Database_Config">
+			<db:sql ><![CDATA[SELECT * FROM people WHERE ID = :uriID]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{ uriID: vars.personID }]]]></db:input-parameters>
+		</db:query-single>
+		<ee:transform doc:name="to Contract" doc:id="6f56bf70-291b-44bf-bd28-3f38b02cc9e3">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="d756b6e7-0652-4205-8cda-8860f38213f8" />
+	</flow>
+	<flow name="putPersonByID" doc:id="3765f49b-6c8e-48a3-9b69-acdd6b750e07" >
+		<flow-ref doc:name="validatePersonID" doc:id="04c68777-755c-4ff1-94bf-caeee008277a" name="validatePersonID" />
+		<db:update doc:name="Update - replace whole person" doc:id="407ef882-85a2-4c82-b14e-cdd38858be98" config-ref="Database_Config">
+			<db:sql ><![CDATA[UPDATE people SET firstName = :fname, lastName = :lname, address1 = :addr WHERE ID = :uriID]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{ fname: payload.firstName, lname: payload.lastName, addr: payload.address1 }]]]></db:input-parameters>
+		</db:update>
+		<logger level="INFO" doc:name="Logger" doc:id="7df6fbdc-ea27-4e84-a276-e90eb2c59060" />
+	</flow>
+	<flow name="patchPersonByID" doc:id="5da545cb-be66-49fb-a08a-1c05af2232b0" >
+				<flow-ref doc:name="validatePersonID" doc:id="468cb596-27d6-4602-be64-726269fe4bfb" name="validatePersonID" />
+		<db:update doc:name="Update according to patch data" doc:id="e407bd8e-f8e7-4130-bb72-de86a877bddc" config-ref="Database_Config">
+			<db:sql ><![CDATA[#[ 'update people $(vars.dynamicUpdate.set) WHERE ID = :uriID' ]]]></db:sql>
+			<db:input-parameters ><![CDATA[#[if (isEmpty(vars.dynamicUpdate.params))
+   { uriID: vars.personID }
+else vars.dynamicUpdate.params ++ { uriID: vars.personID}]]]></db:input-parameters>
+		</db:update>
+		<ee:transform doc:name="to Contract (payload and httpStatus)" doc:id="90f27eb4-0cae-45ab-a793-9cdd49977d4c" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+null]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+204 // success. no body returned]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="ca4df64f-6ea7-4b98-9869-cf3c60ecd72e" />
+	</flow>
+	<flow name="getJobsForPersonByID" doc:id="6d4745f9-9622-4840-8726-bebff8b029f6">
+				<flow-ref doc:name="validatePersonID" doc:id="44c90c2a-af9f-49cd-b98a-2c39c402c260" name="validatePersonID" />
+		<db:select doc:name="Select jobs for person" doc:id="1052192c-bd58-47f6-800e-39023e570639" config-ref="Database_Config">
+			<db:sql ><![CDATA[#[ 'select * from jobs as j, personJob as pj ' ++ if(isEmpty(vars.dynamicWhere.where)) 'WHERE pj.pID = :uriID and j.ID = pj.jID'
+ else '$(vars.dynamicWhere.where) AND pj.pID = :uriID and j.ID = pj.jID'  ]]]></db:sql>
+			<db:input-parameters ><![CDATA[#[if (isEmpty(vars.dynamicWhere.params)) { uriID: vars.personID }
+else (vars.dynamicWhere.params) ++ { uriID: vars.personID}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="to Contract" doc:id="a8675fb6-712f-48d6-9b7e-35f44c5cc1a6" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload - 'ID' - 'pID' map {
+	ID: $.ID,
+	companyName: $.companyName,
+	companyAddress: $.companyAddress,
+	workAddress: $.workAddress,
+	title: $.Title,
+	ratePerHour: $.ratePerHour
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="cbd7b5c9-eb45-4161-8e67-bdab567063d2" message="get:\people\(personID):blog-dw-config" />
+	</flow>
+	<flow name="postJob" doc:id="bb34fd42-1398-4712-ad62-d852c6a94c9e" >
+		<logger level="INFO" message="post:\jobs:blog-dw-config" />
+	</flow>
+	<flow name="getJobs" doc:id="0e31fe34-e4c0-425b-a202-ac9d4f491497" >
+		<db:select doc:name="Select" doc:id="66e26eb0-9962-4ddd-8e9a-a5eff2f26407" config-ref="Database_Config">
+			<db:sql ><![CDATA[#[ 'select * from jobs $(vars.dynamicWhere.where)' ]]]></db:sql>
+			<db:input-parameters ><![CDATA[#[if (isEmpty(vars.dynamicWhere.params)) {} else vars.dynamicWhere.params]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="to Contract" doc:id="58342201-0355-45b3-a10a-c8baf1d7297d" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" message="get:\jobs:blog-dw-config" />
+	</flow>
+</mule>

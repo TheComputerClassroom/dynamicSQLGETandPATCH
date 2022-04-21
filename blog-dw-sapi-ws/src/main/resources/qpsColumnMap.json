@@ -1,0 +1,18 @@
+{
+	"people": {
+		"table": "people",
+		"queryParams": {
+			"fname": "firstName",
+			"lname": "lastName",
+			"address": "address1"
+		}
+	},
+      "jobs": {
+            "table": "jobs",
+            "queryParams": {
+               "ratePerHour": "ratePerHour",
+               "companyName": "companyName",
+               "title": "title"
+               }
+      }
+}

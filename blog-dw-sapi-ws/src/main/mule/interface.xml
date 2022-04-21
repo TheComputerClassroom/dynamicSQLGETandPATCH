@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+    <flow name="blog-dw-main">
+        <http:listener config-ref="blog-dw-httpListenerConfig" path="/api/*" doc:name="Listener ">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="blog-dw-config" />
+        <error-handler ref="APIKitMainErrorHandler" />
+    </flow>
+    <flow name="blog-dw-console">
+        <http:listener config-ref="blog-dw-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default  {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="blog-dw-config" />
+        <error-handler ref="APIKitConsoleErrorHandler" />
+    </flow>
+    <flow name="post:\people:application\json:blog-dw-config">
+        <flow-ref doc:name="postPerson" doc:id="2984d969-00ab-4a32-888b-3deb8844e2b9" name="postPerson" />
+    </flow>
+    <flow name="get:\people:blog-dw-config">
+        <set-payload value="#[null]" doc:name="payload to null" doc:id="fc51889c-cc4d-4e6b-a11f-ea457ea7880a" />
+        <ee:transform doc:name="createDynamicWhere" doc:id="7e108b9a-7c17-4fd5-a98d-e9105dab0981">
+            <ee:message />
+            <ee:variables>
+                <ee:set-variable variableName="dynamicWhere"><![CDATA[%dw 2.0
+output application/java
+import makeDynamicWhere from dw::dynamicQueryFunctions
+---
+makeDynamicWhere(message.attributes.queryParams, "people")]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <flow-ref doc:name="getPeople" doc:id="6f92bfe2-02ab-410c-a70c-78256a552e74" name="getPeople" />
+    </flow>
+    <flow name="get:\people\(personID):blog-dw-config">
+        <set-payload value="#[null]" doc:name="payload to null" doc:id="61850508-2f57-47fe-acf1-f095578a9eaa" />
+        <ee:transform doc:name="save personID">
+            <ee:variables>
+                <ee:set-variable variableName="personID">attributes.uriParams.'personID'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <flow-ref doc:name="getPersonByID" doc:id="3656465e-75f9-4910-9d75-2b1204eb2a1b" name="getPersonByID" />
+    </flow>
+    <flow name="put:\people\(personID):application\json:blog-dw-config">
+        <ee:transform doc:name="save personID">
+            <ee:variables>
+                <ee:set-variable variableName="personID">attributes.uriParams.'personID'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <flow-ref doc:name="getPersonByID" doc:id="fe7548ae-ce8f-4e2b-8e1a-8d0c8882fd0c" name="putPersonByID" />
+    </flow>
+    <flow name="patch:\people\(personID):application\json:blog-dw-config">
+        <ee:transform>
+            <ee:variables>
+                <ee:set-variable variableName="personID">attributes.uriParams.'personID'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="create dynamic update" doc:id="53b350db-2e05-4e28-9738-8c714571b7dd">
+            <ee:message />
+            <ee:variables>
+                <ee:set-variable resource="dynamicUpdatePerson.dwl" variableName="dynamicUpdate" />
+            </ee:variables>
+        </ee:transform>
+        <flow-ref doc:name="getPersonByID" doc:id="45eacea8-aa2e-4042-8f25-f28c09f2ed6e" name="patchPersonByID" />
+    </flow>
+    <flow name="get:\people\(personID)\jobs:blog-dw-config">
+        <set-payload value="#[null]" doc:name="payload to null" doc:id="1bd64cfa-fa7c-440c-9136-d49303f56d2d" />
+        <ee:transform>
+            <ee:variables>
+                <ee:set-variable variableName="personID">attributes.uriParams.'personID'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="create dynamicWhere" doc:id="9ceaeb6f-ff4e-491a-ae31-8615e46f6d24">
+            <ee:message />
+            <ee:variables>
+                <ee:set-variable resource="dynamicWherePeople.dwl" variableName="dynamicWhere" />
+            </ee:variables>
+        </ee:transform>
+        <flow-ref doc:name="getPersonByID" doc:id="a8ede285-d678-4872-86f8-7fd8660174ab" name="getJobsForPersonByID" />
+    </flow>
+    <flow name="post:\jobs:blog-dw-config">
+        <flow-ref doc:name="getJobs" doc:id="966621e5-bdcb-4ccc-b780-4fd51d60b935" name="postJob" />
+    </flow>
+    <flow name="get:\jobs:blog-dw-config">
+        <set-payload value="#[null]" doc:name="payload to null" doc:id="1b8fc675-65dd-463e-a7d9-c805260696b1" />
+        <ee:transform doc:name="create dynamicWhere" doc:id="506a0111-4a97-48b3-b917-52a956776ea0">
+            <ee:message />
+            <ee:variables>
+                <ee:set-variable resource="dynamicWherePeople.dwl" variableName="dynamicWhere" />
+            </ee:variables>
+        </ee:transform>
+        <flow-ref doc:name="getJobs" doc:id="ee6a5837-42bb-4edc-8678-6e44a993070b" name="getJobs" />
+    </flow>
+</mule>

@@ -1,0 +1,20 @@
+{
+	"people": {
+		"table": "people",
+		"props": {
+			"firstName": "firstName",
+        			"lastName": "lastName",
+			"address1":  "address1"
+		 }
+      },
+	"jobs": {
+		"table": "jobs",
+		"props": {
+			"companyName": "companyName",
+      			"companyAddress": "companyAddress",
+      			"title": "title",
+      			"workAddress": "workAddress",
+      			"ratePerHour": "ratePerHour"
+          }
+      }
+}
