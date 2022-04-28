@@ -60,17 +60,17 @@
 			<version>8.0.26</version>
 		</dependency>
 		<dependency>
-			<groupId>org.mule.connectors</groupId>
-			<artifactId>mule-db-connector</artifactId>
-			<version>1.13.0</version>
-			<classifier>mule-plugin</classifier>
-		</dependency>
-		<dependency>
 			<groupId>78042b0c-3cbd-469e-921d-3420e29f9a9d</groupId>
 			<artifactId>blog-dw-sapi</artifactId>
 			<version>1.0.2</version>
 			<classifier>raml</classifier>
 			<type>zip</type>
+		</dependency>
+		<dependency>
+			<groupId>org.mule.connectors</groupId>
+			<artifactId>mule-db-connector</artifactId>
+			<version>1.13.1</version>
+			<classifier>mule-plugin</classifier>
 		</dependency>
 	</dependencies>
 
