@@ -7,7 +7,7 @@ This GitHub project contains:
 
 The API's RAML definition can be found in the *blog-dw-sapi-ws/blog-dw-sapi* folder. That is actually a MAVEN artifact, imported from Anypoint Platform's Exchange component via a reference in the *blog-dw-sapi-ws/pom.xml* file.
 
-To understand details of this project, see [this blog](URL 'https://www.compclass.com/?p=413').
+To understand details of this project, see https://www.compclass.com/?p=413'
 
 To use this project, you need to:
 1. Install MySQL onto your localhost (or have it loaded elsewhere)
