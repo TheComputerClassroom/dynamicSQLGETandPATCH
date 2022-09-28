@@ -1,0 +1,110 @@
+{
+	"images": {
+		"table": "images",
+		"idColumn": {"primary": "imageID", "api": "imageID"}, 
+		"queryParams": {
+			"geoID": { "column": "geoId", "operator": "equal"},
+			"environment": { "column": "environment", "operator": "equal"},
+			"version": { "column": "version", "operator": "equal" },
+			"platformName": { "column": "platform", "operator": "equal" },
+			"labelContains": { "column": "label", "operator": "like", "expression": "%%v%" },
+			"courseID": { "column": "courses_images_map.`Course IDe`", "operator": "equal", "joinExpression": "courses_images_map.imageIDe = %t.imageID" }
+			},
+		"props": {
+			"imageID": "imageId",
+			"environment": "environment",
+			"version": "version",
+			"imageName": "platformImageId",
+			"geoID": "geoId",
+			"label": "label",
+			"platformName": "platform"
+		}
+	},
+	
+     "courseImageMappings": {
+     	"table": "courses_images_map",
+     	"idColumn": { "primary": "cimId", "api": "mapID"},
+     	"queryParams": {
+     		"courseID": { "column": "Course IDE", "operator": "equal"},
+     		"imageID": { "column": "imageIdE", "operator": "equal"}
+     	},
+     	"props": {
+			"mapID": "cimId",
+			"courseID": "Course IDE",
+        	"imageID": "imageIdE"
+		 }
+     },
+     
+    "courseOwners": {
+    	"table": "course_owners",
+    	"idColumn": {"primary": "ownerId", "api": "courseOwnerID"},
+    	"queryParams": {
+    		"fname": { "column": "ownerFname", "operator": "equal"},
+    		"lname": { "column": "ownerLname", "operator": "equal"},
+    		"ownerEmail": { "column": "ownerEmail", "operator": "equal"}
+    	},
+    	"props": {
+    		"ownerID": "ownerId",
+    		"eMail": "ownerEmail",
+    		"fname": "ownerFname",
+    		"lname": "ownerLname"
+    	}
+    },
+    
+    "courseOwnerMappings": {
+    	"table": "courses_owners_map",
+    	"idColumn": { "primary": "mapId", "api": "mapID"},
+    	"queryParams": {
+    		"courseID": {"column": "courseId", "operator": "equal"},
+    		"ownerID": {"column": "ownerId", "operator": "equal"}
+    	},
+    	"props": {
+    		"mapID": "mapId",
+    		"ownerID": "ownerId",
+    		"courseID": "courseId"
+    	}
+    },
+    
+    "countries": {
+    	"table": "countries",
+    	"idColumn": { "primary": "countryID", "api": "countryID" },
+    	"queryParams": {
+    		"countryName": { "column": "country", "operator": "equal"}
+    	},
+    	"props": {
+    		"countryID": "countryID",
+    		"country": "country"
+    	}
+    },
+    
+    "geos": {
+    	"table": "geographies",
+    	"idColumn": { "primary": "geoID", "api": "geoID" },
+    	"queryParams": {
+    		"geoName": { "column": "geoName", "operator": "equal"}
+    	},
+    	"props": {
+    		"geoID": "geoID",
+    		"geoName": "geoName",
+    		"platformName": "platformName"
+    	}
+    },
+    
+    "countyGeoPlatformMappings": {
+    	"table": "countries_geos_platforms_map",
+    	"idColumn": { "primary": "mapID", "api": "mapID"},
+    	"queryParams": {
+    		"countryID": { "column": "countryIDE", "operator": "equal"},
+     		"geoID": { "column": "geoIDE", "operator": "equal"},
+     		"platform": { "column": "platform", "operator": "equal"},
+			"geoName": { "column": "geographies.geoName", "operator": "equal", "joinExpression": "geographies.geoID = %t.geoIDE" },
+			"countryName": { "column": "countries.country", "operator": "equal", "joinExpression": "countries.countryID = %t.countryIDE" }
+    	},
+    	"props": {
+    		"mapID": "mapID",
+    		"countryID": "countryID",
+    		"geoID": "geoID",
+    		"platformName": "platform"
+    	}
+    }
+}
